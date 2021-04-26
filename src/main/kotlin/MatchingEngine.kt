@@ -5,8 +5,9 @@ class MatchingEngine (
     private val orders: List<Order>
 ) {
     fun match(): List<Invoice> {
-        val buyQueue = buildOrderQueueBasedOnType(orders, OrderType.BUY);
-        val sellQueue = buildOrderQueueBasedOnType(orders, OrderType.SELL);
+        val buyQueue = buildOrderQueueBasedOnType(orders) { it.type == OrderType.BUY };
+        val sellQueue = buildOrderQueueBasedOnType(orders) { it.type == OrderType.SELL };
+
         val invoices = mutableListOf<Invoice>();
         while (sellQueue.isNotEmpty() && buyQueue.isNotEmpty()) {
 
@@ -46,13 +47,14 @@ class MatchingEngine (
         return invoices;
     }
 
-    private fun buildOrderQueueBasedOnType(orders: List<Order>, orderType: OrderType): PriorityQueue<Order> {
-        val ordersByType = orders.filter {
-            it.type == orderType
+    private fun buildOrderQueueBasedOnType(orders: List<Order>, predicate: (o :Order) -> Boolean): PriorityQueue<Order> {
+        return orders.filter(predicate)
+        .let {
+            filteredOrders ->
+                PriorityQueue<Order>().also {
+                    it.addAll(filteredOrders);
+                };
         }
-        return PriorityQueue<Order>().also {
-            it.addAll(ordersByType);
-        };
     }
 }
 
